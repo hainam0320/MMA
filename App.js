@@ -1,16 +1,35 @@
 import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import HomeScreen from './src/screens/HomeScreen';
+import HomeScreen from './src/screens/HomeScreen'
+import ImageListScreen from './src/screens/ImageListScreen';
+import { Ionicons } from '@expo/vector-icons';
 
-const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Home" component={HomeScreen} />
-      </Stack.Navigator>
+      <Tab.Navigator screenOptions={{ headerShown: false }}>
+        <Tab.Screen 
+          name="Home" 
+          component={HomeScreen} 
+          options={{ 
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="heart-outline" size={size} color={color} />
+            )
+          }} 
+        />
+        <Tab.Screen 
+          name="Kho Ảnh" 
+          component={ImageListScreen} 
+          options={{ 
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="images-outline" size={size} color={color} />
+            )
+          }} 
+        />
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }
