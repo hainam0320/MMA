@@ -45,6 +45,7 @@ export default function ImageMapApp() {
       }
     })();
   }, []);
+  
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
@@ -66,6 +67,7 @@ export default function ImageMapApp() {
       setLocation(newLocation);
     }
   };
+  
  const toggleMapView = () => {
     setIsMapCollapsed(!isMapCollapsed);
   };
@@ -133,13 +135,27 @@ export default function ImageMapApp() {
     loadImageList();
   }, []);
 
-  const openImageDetail = (item) => {
+  const openImageDetail = async (item) => {
     setSelectedImage(item);
     Image.getSize(item.uri, (width, height) => {
       setImageSize({ width, height });
     });
+  
+    // Lấy địa chỉ từ tọa độ
+    try {
+      const address = await Location.reverseGeocodeAsync(item.location);
+      if (address.length > 0) {
+        const locationString = `${address[0].name || ''}, ${address[0].city || ''}, ${address[0].region || ''}, ${address[0].country || ''}`;
+        setSelectedImage({ ...item, address: locationString }); // Cập nhật địa chỉ vào state
+      }
+    } catch (error) {
+      console.error("Lỗi lấy địa chỉ: ", error);
+      setSelectedImage({ ...item, address: "Không xác định" }); // Nếu lỗi, đặt địa chỉ là "Không xác định"
+    }
+  
     setModalVisible(true);
   };
+  
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -206,8 +222,8 @@ export default function ImageMapApp() {
               <Image source={{ uri: selectedImage.uri }} style={styles.modalImage} />
               <Text style={styles.modalNote}>{selectedImage.note}</Text>
               <Text style={styles.modalLocation}>
-                🗺 {selectedImage.location.latitude.toFixed(5)}, {selectedImage.location.longitude.toFixed(5)}
-              </Text>
+  🗺 {selectedImage.address || "Đang tải địa chỉ..."}
+</Text>
               <Text style={styles.modalDate}>⏱ {selectedImage.date}</Text>
               <Text style={styles.modalSize}>🖼 {imageSize.width} x {imageSize.height} px</Text>
               <View style={styles.buttonContainer}>
