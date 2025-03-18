@@ -240,7 +240,7 @@ export default function ImageMapApp() {
 
 const styles = StyleSheet.create({
   safeContainer: { flex: 1, backgroundColor: '#f9f9f9' },
-  container: { flex: 1, padding: 16, paddingTop: 40, backgroundColor: '##FFFFCC' },
+  container: { flex: 1, padding: 16, paddingTop: 40, backgroundColor: '#FCE4EC' },
 
   map: { 
     width: '100%', 
