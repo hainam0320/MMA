@@ -158,7 +158,7 @@ const HomeScreen = () => {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      padding: 20,
+      padding: 0,
       backgroundColor: '#FFFAF0',
     },
     inputContainer: {
@@ -175,12 +175,14 @@ const HomeScreen = () => {
       borderRadius: 10,
     },
     header: {
+      textAlign: 'center',
       fontSize: 22,
       fontWeight: 'bold',
       color: '#FF1493',
       marginBottom: 15,
     },
     days: {
+      textAlign: 'center',
       fontSize: 30,
       fontWeight: 'bold',
       color: 'red',
