@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Button, Image, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const HomeScreen = () => {
   const [name1, setName1] = useState('');
@@ -13,6 +14,8 @@ const HomeScreen = () => {
   const [submitted, setSubmitted] = useState(false);
   const [image1, setImage1] = useState(null);
   const [image2, setImage2] = useState(null);
+  const [backgroundImage, setBackgroundImage] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -24,6 +27,7 @@ const HomeScreen = () => {
         const savedDate = await AsyncStorage.getItem('startDate');
         const savedImage1 = await AsyncStorage.getItem('image1');
         const savedImage2 = await AsyncStorage.getItem('image2');
+        const savedBackground = await AsyncStorage.getItem('backgroundImage');
 
         if (savedName1 && savedName2 && savedDate) {
           setName1(savedName1);
@@ -34,6 +38,7 @@ const HomeScreen = () => {
           setDaysTogether(calculateDays(savedDate));
           if (savedImage1) setImage1(savedImage1);
           if (savedImage2) setImage2(savedImage2);
+          if (savedBackground) setBackgroundImage(savedBackground);
           setSubmitted(true);
         }
       } catch (error) {
@@ -57,23 +62,25 @@ const HomeScreen = () => {
     }
   };
 
-  const handleEdit = () => {
-    setSubmitted(false);
-  };
-
-  const pickImage = async () => {
+  const pickImage = async (setImageFunction, storageKey) => {
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.IMAGE, // ✅ Sử dụng MediaType thay vì MediaTypeOptions
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
     });
-  
+
     if (!result.canceled) {
-      setImage(result.assets[0].uri); // ✅ Kết quả bây giờ nằm trong `assets`
+      const uri = result.assets[0].uri;
+      setImageFunction(uri);
+      await AsyncStorage.setItem(storageKey, uri);
     }
   };
-  
+
+  const handleBackgroundChange = async () => {
+    await pickImage(setBackgroundImage, 'backgroundImage');
+    setModalVisible(false); // Ẩn modal ngay sau khi chọn ảnh
+  };
 
   const calculateDays = (startDate) => {
     const start = new Date(startDate);
@@ -84,17 +91,22 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Hiển thị ảnh nền */}
+      {backgroundImage && (
+        <Image source={{ uri: backgroundImage }} style={styles.backgroundImage} />
+      )}
+
       {!submitted ? (
         <View style={styles.inputContainer}>
           <Text style={styles.header}>Nhập thông tin của bạn:</Text>
 
-          <TouchableOpacity onPress={() => pickImage(setImage1)}>
+          <TouchableOpacity onPress={() => pickImage(setImage1, 'image1')}>
             <Image source={image1 ? { uri: image1 } : require('../../assets/couple1.png')} style={styles.avatar} />
           </TouchableOpacity>
           <TextInput placeholder="Tên bạn" value={name1} onChangeText={setName1} style={styles.input} />
           <TextInput placeholder="Cung hoàng đạo" value={zodiac1} onChangeText={setZodiac1} style={styles.input} />
 
-          <TouchableOpacity onPress={() => pickImage(setImage2)}>
+          <TouchableOpacity onPress={() => pickImage(setImage2, 'image2')}>
             <Image source={image2 ? { uri: image2 } : require('../../assets/couple1.png')} style={styles.avatar} />
           </TouchableOpacity>
           <TextInput placeholder="Tên người ấy" value={name2} onChangeText={setName2} style={styles.input} />
@@ -103,7 +115,7 @@ const HomeScreen = () => {
           <Button title="Xác nhận" onPress={handleConfirm} />
         </View>
       ) : (
-        <View style={styles.resultContainer}>
+        <View style={styles.resultContainer}> 
           <Text style={styles.header}>Kỷ niệm tình yêu</Text>
           <Text style={styles.days}>{daysTogether} ngày</Text>
           <View style={styles.row}>
@@ -116,69 +128,104 @@ const HomeScreen = () => {
             <View style={styles.profile}>
               <Image source={image2 ? { uri: image2 } : require('../../assets/couple1.png')} style={styles.avatar} />
               <Text>{name2}</Text>
-              <Text>{zodiac2}</Text>
+              <Text>{zodiac2}</Text>              
             </View>
           </View>
-          <Button title="Chỉnh sửa" onPress={handleEdit} />
         </View>
       )}
+
+      {/* Nút cài đặt */}
+      <TouchableOpacity style={styles.settingsButton} onPress={() => setModalVisible(true)}>
+        <Ionicons name="settings-outline" size={32} color="#FF1493" />
+      </TouchableOpacity>
+
+      {/* Modal tùy chọn */}
+      <Modal transparent={true} visible={modalVisible} animationType="fade">
+        <View style={styles.modalContainer}>
+          <TouchableOpacity onPress={() => { setSubmitted(false); setModalVisible(false); }}>
+            <Text style={styles.option}>Chỉnh sửa thông tin</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleBackgroundChange}>
+            <Text style={styles.option}>Chỉnh sửa ảnh nền</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 };
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 20,
+      backgroundColor: '#FFFAF0',
+    },
+    inputContainer: {
+      width: '100%',
+      alignItems: 'center',
+    },
+    input: {
+      height: 40,
+      borderColor: '#FF69B4',
+      borderWidth: 1,
+      marginBottom: 10,
+      paddingHorizontal: 8,
+      width: '90%',
+      borderRadius: 10,
+    },
+    header: {
+      fontSize: 22,
+      fontWeight: 'bold',
+      color: '#FF1493',
+      marginBottom: 15,
+    },
+    days: {
+      fontSize: 30,
+      fontWeight: 'bold',
+      color: 'red',
+      marginVertical: 10,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 20,
+    },
+    profile: {
+      alignItems: 'center',
+      marginHorizontal: 20,
+    },
+    avatar: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      marginBottom: 5,
+    },
+    heart: {
+      fontSize: 30,
+      marginHorizontal: 15,
+      color: 'red',
+    },
+    backgroundImage: {
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      opacity: 0.3, 
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    option: {
+      fontSize: 18,
+      padding: 15,
+      color: 'white',
+      backgroundColor: '#FF69B4',
+      borderRadius: 10,
+      marginBottom: 10,
+    }
+  });
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#FFFAF0',
-  },
-  inputContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  input: {
-    height: 40,
-    borderColor: '#FF69B4',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 8,
-    width: '90%',
-    borderRadius: 10,
-  },
-  header: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FF1493',
-    marginBottom: 15,
-  },
-  days: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: 'red',
-    marginVertical: 10,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  profile: {
-    alignItems: 'center',
-    marginHorizontal: 20,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 5,
-  },
-  heart: {
-    fontSize: 30,
-    marginHorizontal: 15,
-    color: 'red',
-  },
-});
-
-export default HomeScreen;
+  export default HomeScreen;
