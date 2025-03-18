@@ -57,7 +57,7 @@ export default function App() {
           }} 
         />
         <Tab.Screen 
-          name="Kho Ảnh" 
+          name="Kho Kỷ Niệm" 
           component={ImageListScreen} 
           options={{ 
             tabBarIcon: ({ color, size }) => (
