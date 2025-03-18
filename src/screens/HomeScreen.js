@@ -160,11 +160,18 @@ const HomeScreen = () => {
       {!submitted ? (
         <View style={styles.inputContainer}>
           <Text style={styles.header}>Nhập thông tin của bạn:</Text>
+          <TouchableOpacity onPress={() => pickImage(setImage1, 'image1')}>
+            <Image  source={image1 ? { uri: image1 } : require('../../assets/couple1.png')} style={styles.avatar} />
+           
+          </TouchableOpacity>
           <TextInput placeholder="Tên bạn" value={name1} onChangeText={setName1} style={styles.input} />
           <TextInput placeholder="Tuổi của bạn" value={age1} onChangeText={setAge1} keyboardType="numeric" style={styles.input} />
           <TextInput placeholder="Giới tính của bạn" value={gender1} onChangeText={setGender1} style={styles.input} />
           <TextInput placeholder="Cung hoàng đạo" value={zodiac1} onChangeText={setZodiac1} style={styles.input} />
-
+          <TouchableOpacity onPress={() => pickImage(setImage2, 'image2')}>
+            
+         <Image  source={image2 ? { uri: image2 } : require('../../assets/couple1.png')} style={styles.avatar} />
+          </TouchableOpacity>
           <TextInput placeholder="Tên người ấy" value={name2} onChangeText={setName2} style={styles.input} />
           <TextInput placeholder="Tuổi người ấy" value={age2} onChangeText={setAge2} keyboardType="numeric" style={styles.input} />
           <TextInput placeholder="Giới tính người ấy" value={gender2} onChangeText={setGender2} style={styles.input} />
