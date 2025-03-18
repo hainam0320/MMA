@@ -28,7 +28,7 @@ const HomeScreen = () => {
           'name1', 'name2', 'age1', 'age2', 'gender1', 'gender2',
           'zodiac1', 'zodiac2', 'startDate', 'image1', 'image2', 'backgroundImage'
         ]);
-
+        
         savedData.forEach(([key, value]) => {
           if (value !== null) {
             switch (key) {
@@ -40,8 +40,8 @@ const HomeScreen = () => {
               case 'gender2': setGender2(value); break;
               case 'zodiac1': setZodiac1(value); break;
               case 'zodiac2': setZodiac2(value); break;
-              case 'startDate':
-                setStartDate(value);
+              case 'startDate': 
+                setStartDate(value); 
                 setDaysTogether(calculateDays(value));
                 break;
               case 'image1': setImage1(value); break;
@@ -60,17 +60,70 @@ const HomeScreen = () => {
   }, []);
 
   const handleConfirm = async () => {
-    if (name1 && name2 && age1 && age2 && gender1 && gender2 && zodiac1 && zodiac2 && startDate) {
-      setDaysTogether(calculateDays(startDate));
-      await AsyncStorage.multiSet([
-        ['name1', name1], ['name2', name2], ['age1', age1], ['age2', age2],
-        ['gender1', gender1], ['gender2', gender2], ['zodiac1', zodiac1], ['zodiac2', zodiac2],
-        ['startDate', startDate],
-        image1 ? ['image1', image1] : [], image2 ? ['image2', image2] : []
-      ]);
-      setSubmitted(true);
+    // Kiểm tra tên
+    if (!name1.trim() || !/^[A-Za-zÀ-ỹ\s]+$/.test(name1)) {
+      alert('Tên của bạn không hợp lệ! Chỉ được chứa chữ cái và khoảng trắng.');
+      return;
     }
+    if (!name2.trim() || !/^[A-Za-zÀ-ỹ\s]+$/.test(name2)) {
+      alert('Tên người ấy không hợp lệ! Chỉ được chứa chữ cái và khoảng trắng.');
+      return;
+    }
+  
+    // Kiểm tra tuổi
+    if (!/^\d+$/.test(age1) || parseInt(age1) <= 0) {
+      alert('Tuổi của bạn phải là số nguyên dương!');
+      return;
+    }
+    if (!/^\d+$/.test(age2) || parseInt(age2) <= 0) {
+      alert('Tuổi của người ấy phải là số nguyên dương!');
+      return;
+    }
+  
+    // Kiểm tra giới tính
+    if (!["nam", "nữ"].includes(gender1.toLowerCase())) {
+      alert('Giới tính của bạn phải là "Nam" hoặc "Nữ"!');
+      return;
+    }
+    if (!["nam", "nữ"].includes(gender2.toLowerCase())) {
+      alert('Giới tính của người ấy phải là "Nam" hoặc "Nữ"!');
+      return;
+    }
+  
+    // Kiểm tra cung hoàng đạo
+    if (!zodiac1.trim()) {
+      alert('Bạn chưa nhập cung hoàng đạo của mình!');
+      return;
+    }
+    if (!zodiac2.trim()) {
+      alert('Bạn chưa nhập cung hoàng đạo của người ấy!');
+      return;
+    }
+  
+    // Kiểm tra ngày bắt đầu yêu
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(startDate)) {
+      alert('Ngày bắt đầu yêu phải có định dạng YYYY-MM-DD!');
+      return;
+    }
+    const start = new Date(startDate);
+    const today = new Date();
+    if (start > today) {
+      alert('Ngày bắt đầu yêu không thể là ngày trong tương lai!');
+      return;
+    }
+  
+    // Lưu vào AsyncStorage và cập nhật trạng thái
+    setDaysTogether(calculateDays(startDate));
+    await AsyncStorage.multiSet([
+      ['name1', name1], ['name2', name2], ['age1', age1], ['age2', age2],
+      ['gender1', gender1], ['gender2', gender2], ['zodiac1', zodiac1], ['zodiac2', zodiac2],
+      ['startDate', startDate],
+      image1 ? ['image1', image1] : [], image2 ? ['image2', image2] : []
+    ]);
+    setSubmitted(true);
   };
+  
 
   const pickImage = async (setImageFunction, storageKey) => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -121,29 +174,29 @@ const HomeScreen = () => {
         </View>
       ) : (
         <View style={styles.resultContainer}>
-          <View style={styles.resultContainer}>
-            <Text style={styles.header}>Kỷ niệm tình yêu</Text>
-            <Text style={styles.days}>{daysTogether} ngày</Text>
-            <View style={styles.row}>
-              <View style={styles.profile}>
-                <Text>{name1} ({age1})</Text>
+          <Text style={styles.header}>Kỷ niệm tình yêu</Text>
+          <Text style={styles.days}>{daysTogether} ngày</Text>
+          <View style={styles.row}>
+            <View style={styles.profile}>
+              <Image source={image1 ? { uri: image1 } : require('../../assets/couple1.png')} style={styles.avatar} />
+              <Text>{name1} ({age1})</Text>
                 <Ionicons
                   name={gender1.toLowerCase() === 'nam' ? "male" : "female"}
                   size={24}
                   color={gender1.toLowerCase() === 'nam' ? "#0000FF" : "#FF1493"}
                 />
-                <Text>{zodiac1}</Text>
-              </View>
-              <Text style={styles.heart}>❤️</Text>
-              <View style={styles.profile}>
-                <Text>{name2} ({age2})</Text>
+              <Text>{zodiac1}</Text>
+            </View>
+            <Text style={styles.heart}>❤️</Text>
+            <View style={styles.profile}>
+              <Image source={image2 ? { uri: image2 } : require('../../assets/couple1.png')} style={styles.avatar} />
+              <Text>{name2} ({age2})</Text>
                 <Ionicons
                   name={gender2.toLowerCase() === 'nam' ? "male" : "female"}
                   size={24}
                   color={gender2.toLowerCase() === 'nam' ? "#0000FF" : "#FF1493"}
                 />
-                <Text>{zodiac2}</Text>
-              </View>
+              <Text>{zodiac2}</Text>
             </View>
           </View>
         </View>
